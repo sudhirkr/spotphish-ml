@@ -1,0 +1,25 @@
+{
+  "name": "spotphish",
+  "version": "1.0.0",
+  "description": "Detecting phishing web site based on human perception",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "phishing",
+    "webpages",
+    "ML",
+    "deep",
+    "learning",
+    "machine",
+    "learning",
+    "human",
+    "perception"
+  ],
+  "author": "Sudhir Kumar",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
