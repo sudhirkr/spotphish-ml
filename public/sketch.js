@@ -90,7 +90,7 @@ function classifierReady () {
 
 function setup() {
   var c = createCanvas(400, 400);
-  background(100);
+  background(0);
   c.drop(gotFile);
 
   const options = {version: 1, epochs: 20, numLabels: 5, batchSize: 0.2 };
