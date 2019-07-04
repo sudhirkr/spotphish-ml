@@ -36,16 +36,26 @@ function setup() {
   classifier = mobilenet.classification(classifierReady);
   classifier.load('model.json', customclassifier);
 
-  input = select('#input');
-  input.changed(function() {
-    selectedFile = document.getElementById('input').files[0];
-    let imgpath = "assets/" +selectedFile.name;
-    console.log(imgpath);
-    loadImage(imgpath, img1 => {
-      img = createImg(imgpath, testModel);
-      img.size(244, 244);
-      image(img1, 0, 0, width, height);
-    });
+  input = select('#files');
+  input.changed(function(evt) {
+    var files = evt.target.files;
+    console.log("files");
+    console.log(files);
+
+    // Loop through the FileList and render image files as thumbnails.
+    for (var i = 0, f; f = files[i]; i++) {
+      // Only process image files.
+      if (!f.type.match('image.*')) {
+        continue;
+      }
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        //console.log(e.target.result);
+        img = createImg(e.target.result, testModel);
+        img.size(224, 224);
+      }
+      reader.readAsDataURL(f);
+    }
   });
 }
 
@@ -100,8 +110,8 @@ function gotFile(file) {
 function draw() {
   fill(255);
   noStroke();
-  textSize(12);
+  textSize(25);
   textAlign(CENTER);
-  text('Drag an image after loading Custom Model.', 200, 200);
+  text('Drag an image for prediction', 200, 200);
   noLoop();
 }
