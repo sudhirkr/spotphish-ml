@@ -9,7 +9,7 @@ let canvas;
 var selectedFile;
 const width = 400;
 const height = 400;
-
+var finalResults = {};
 
 // Change the status when the model loads.
 function modelReady() {
@@ -36,7 +36,8 @@ function setup() {
   mobilenet = ml5.featureExtractor('MobileNet', options, modelReady);
   classifier = mobilenet.classification(classifierReady);
   classifier.load('model.json', customclassifier);
-
+  var predictionContainer = [];
+  var imageContainer = [];  
   input = select('#files');
   input.changed(function(evt) {
     var files = evt.target.files;
@@ -50,56 +51,48 @@ function setup() {
         continue;
       }
       var reader = new FileReader();
-      reader.onload = function(e) {
-        //console.log(e.target.result);
+      reader.onload = function(index,e) {
+        console.log('index',index);
+        console.log('e->',e.target.result);
         img_selector = select('#selected-image');
-        img = createImg(e.target.result, testModel);
-        img.size(224, 224);
-        img.parent('#selected-image');
-      }
+        img = createImg(e.target.result, testModel.bind(null,index));
+        img.size(224, 224);                
+        // let imageElem = document.createElement('div');
+        // imageElem.id = 'imageContainer'+i;
+        // let predictionElem = document.createElement('div');
+        // predictionElem.id = 'predictionContainer'+i;
+        // $('#imageContainer'+i).append(imgTag);
+        // imageContainer.push(imageElem);
+        // predictionContainer.push(predictionElem);        
+      }.bind(null,i);
       reader.readAsDataURL(f);
     }
   });
 }
 
-function testModel() {
+function testModel(index) {
   // Get a prediction for that image
-  console.log(img);
-  console.log(classifier);
+  console.log('index from testmodel',index);
+  console.log('image->',img);
+  // console.log('classifier',classifier);
   classifier.classify(img, function(err, result) {
-  console.log(result);
-  console.log(result[0]);
-  console.log(result[0].label);
-
-  for (var i=0; i < 5; i++) {
-    select("#prediction-list").html(`<li> ${result[i].label}: ${round(result[i].confidence * 100) + '%'} </li>`);
-    //select("#prediction-list").html(`<li> ${result[1].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
-    //select("#prediction-list").html(`<li> ${result[2].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
-    //select("#prediction-list").html(`<li> ${result[3].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
-    //select("#prediction-list").html(`<li> ${result[5].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
-  }
-
-	//select('#res1').html(result[0].label);
-  //select('#conf1').html(round(result[0].confidence * 100) + '%');
-  createElement('li', result[0].label + " " + round(result[0].confidence * 100) + '%');
-
-	//select('#res2').html(result[1].label);
-  //select('#conf2').html(round(result[1].confidence *100) + '%');
-  createElement('li', result[1].label + " " + round(result[1].confidence * 100) + '%');
-
-	//select('#res3').html(result[2].label);
-  //select('#conf3').html(round(result[2].confidence * 100) + '%');
-  createElement('li', result[2].label + " " + round(result[2].confidence * 100) + '%');
-
-	//select('#res4').html(result[3].label);
-  //select('#conf4').html(round(result[3].confidence * 100) + '%');
-  createElement('li', result[3].label + " " + round(result[3].confidence * 100) + '%');
-
-	//select('#res5').html(result[4].label);
-	//select('#conf5').html(round(result[4].confidence * 100) + '%');
-  createElement('li', result[4].label + " " + round(result[4].confidence * 100) + '%');
-  createP(" ");
-  createP(" ");
+      console.log('result->',result);
+      if (result){        
+        // create results hash
+        finalResults['img'+index] = result;
+        // create image tag for this image
+        let imgTag = document.createElement('img');
+        imgTag.id = 'img'+index;
+        imgTag.src = e.target.result;
+        $('#imageContainer').append(imgTag);
+        // create prediction list for this image
+        let listTag = document.createElement('ol');
+        listTag.id = 'prediction-list'+index;                
+        $('#prediction-container').append(listTag);
+        for (var i=0; i < 5; i++){
+          listTag.append(`<li> ${result[i].label}: ${round(result[i].confidence * 100) + '%'} </li>`);
+        }        
+      }
   });
 }
 
@@ -113,7 +106,7 @@ function gotFile(file) {
     img = createImg(file.data, testModel);
     img.size(244, 244);
     // Draw the image onto the canvas
-    image(img, 0, 0, width, height);
+    // image(img, 0, 0, width, height);
   } else {
     console.log('Not an image file!');
   }
