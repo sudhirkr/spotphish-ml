@@ -9,6 +9,7 @@ let canvas;
 var selectedFile;
 const width = 400;
 const height = 400;
+var drozone;
 
 
 // Change the status when the model loads.
@@ -27,15 +28,26 @@ function classifierReady () {
   //If you want to load a pre-trained model at the start
 }
 
+function highlight() {
+  dropzone.style('background-color', '#AAA');
+}
+
+function unhighlight() {
+  dropzone.style('background-color', '#fff');
+}
+
 function setup() {
-  //var c = createCanvas(400, 400);
-  //background(0, 0, 255);
-  //c.drop(gotFile);
+  noCanvas();
 
   const options = {version: 1, epochs: 20, numLabels: 5, batchSize: 0.2 };
   mobilenet = ml5.featureExtractor('MobileNet', options, modelReady);
   classifier = mobilenet.classification(classifierReady);
   classifier.load('model.json', customclassifier);
+
+  dropzone = select('#dropzone');
+  dropzone.dragOver(highlight);
+  dropzone.dragLeave(unhighlight);
+  dropzone.drop(gotFile, unhighlight);
 
   input = select('#files');
   input.changed(function(evt) {
@@ -71,40 +83,20 @@ function testModel() {
   console.log(result[0]);
   console.log(result[0].label);
 
+  var plist = select("#prediction-list");
   for (var i=0; i < 5; i++) {
-    select("#prediction-list").html(`<li> ${result[i].label}: ${round(result[i].confidence * 100) + '%'} </li>`);
-    //select("#prediction-list").html(`<li> ${result[1].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
-    //select("#prediction-list").html(`<li> ${result[2].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
-    //select("#prediction-list").html(`<li> ${result[3].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
-    //select("#prediction-list").html(`<li> ${result[5].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
+    li = createElement('li', result[i].label + "   " + round(result[i].confidence * 100) + '%');
+    li.parent(plist);
+    createElement('li', result[i].label + "   " + round(result[i].confidence * 100) + '%');
   }
 
-	//select('#res1').html(result[0].label);
-  //select('#conf1').html(round(result[0].confidence * 100) + '%');
-  createElement('li', result[0].label + " " + round(result[0].confidence * 100) + '%');
-
-	//select('#res2').html(result[1].label);
-  //select('#conf2').html(round(result[1].confidence *100) + '%');
-  createElement('li', result[1].label + " " + round(result[1].confidence * 100) + '%');
-
-	//select('#res3').html(result[2].label);
-  //select('#conf3').html(round(result[2].confidence * 100) + '%');
-  createElement('li', result[2].label + " " + round(result[2].confidence * 100) + '%');
-
-	//select('#res4').html(result[3].label);
-  //select('#conf4').html(round(result[3].confidence * 100) + '%');
-  createElement('li', result[3].label + " " + round(result[3].confidence * 100) + '%');
-
-	//select('#res5').html(result[4].label);
-	//select('#conf5').html(round(result[4].confidence * 100) + '%');
-  createElement('li', result[4].label + " " + round(result[4].confidence * 100) + '%');
   createP(" ");
   createP(" ");
   });
 }
 
 function gotFile(file) {
-  createP(file.name + " " + file.size);
+  createP(file.name);
   console.log("Came here")
   console.log(file);
   // If it's an image file
