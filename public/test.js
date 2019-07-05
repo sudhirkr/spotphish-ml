@@ -13,8 +13,9 @@ const height = 400;
 
 // Change the status when the model loads.
 function modelReady() {
-  select('#modelStatus').html('MobileNet Loaded!')
+  //select('#modelStatus').html('MobileNet Loaded!')
   console.log('Model loaded');
+  select('.progress-bar').hide();
 }
 
 function customclassifier() {
@@ -27,9 +28,9 @@ function classifierReady () {
 }
 
 function setup() {
-  var c = createCanvas(400, 400);
-  background(0, 0, 255);
-  c.drop(gotFile);
+  //var c = createCanvas(400, 400);
+  //background(0, 0, 255);
+  //c.drop(gotFile);
 
   const options = {version: 1, epochs: 20, numLabels: 5, batchSize: 0.2 };
   mobilenet = ml5.featureExtractor('MobileNet', options, modelReady);
@@ -51,8 +52,10 @@ function setup() {
       var reader = new FileReader();
       reader.onload = function(e) {
         //console.log(e.target.result);
+        img_selector = select('#selected-image');
         img = createImg(e.target.result, testModel);
         img.size(224, 224);
+        img.parent('#selected-image');
       }
       reader.readAsDataURL(f);
     }
@@ -67,24 +70,33 @@ function testModel() {
   console.log(result);
   console.log(result[0]);
   console.log(result[0].label);
-	select('#res1').html(result[0].label);
-  select('#conf1').html(round(result[0].confidence * 100) + '%');
+
+  for (var i=0; i < 5; i++) {
+    select("#prediction-list").html(`<li> ${result[i].label}: ${round(result[i].confidence * 100) + '%'} </li>`);
+    //select("#prediction-list").html(`<li> ${result[1].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
+    //select("#prediction-list").html(`<li> ${result[2].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
+    //select("#prediction-list").html(`<li> ${result[3].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
+    //select("#prediction-list").html(`<li> ${result[5].label}: ${round(result[0].confidence * 100) + '%'} </li>`);
+  }
+
+	//select('#res1').html(result[0].label);
+  //select('#conf1').html(round(result[0].confidence * 100) + '%');
   createElement('li', result[0].label + " " + round(result[0].confidence * 100) + '%');
 
-	select('#res2').html(result[1].label);
-  select('#conf2').html(round(result[1].confidence *100) + '%');
+	//select('#res2').html(result[1].label);
+  //select('#conf2').html(round(result[1].confidence *100) + '%');
   createElement('li', result[1].label + " " + round(result[1].confidence * 100) + '%');
 
-	select('#res3').html(result[2].label);
-  select('#conf3').html(round(result[2].confidence * 100) + '%');
+	//select('#res3').html(result[2].label);
+  //select('#conf3').html(round(result[2].confidence * 100) + '%');
   createElement('li', result[2].label + " " + round(result[2].confidence * 100) + '%');
 
-	select('#res4').html(result[3].label);
-  select('#conf4').html(round(result[3].confidence * 100) + '%');
+	//select('#res4').html(result[3].label);
+  //select('#conf4').html(round(result[3].confidence * 100) + '%');
   createElement('li', result[3].label + " " + round(result[3].confidence * 100) + '%');
 
-	select('#res5').html(result[4].label);
-	select('#conf5').html(round(result[4].confidence * 100) + '%');
+	//select('#res5').html(result[4].label);
+	//select('#conf5').html(round(result[4].confidence * 100) + '%');
   createElement('li', result[4].label + " " + round(result[4].confidence * 100) + '%');
   createP(" ");
   createP(" ");
