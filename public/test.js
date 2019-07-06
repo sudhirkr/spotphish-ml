@@ -10,6 +10,7 @@ var selectedFile;
 const width = 400;
 const height = 400;
 var drozone;
+var count = 0;
 
 // Change the status when the model loads.
 function modelReady() {
@@ -77,8 +78,13 @@ function dirread (event) {
         imgtag.src = e.target.result;
         imgtag.setAttribute("width", "256");
         imgtag.setAttribute("height", "256");
-        $('#imageContainer').append(imgtag);
-        let listtag = document.createElement('ol');
+        if ((count % 2) == 0) {
+          $('#imageContainer').append(imgtag);
+        } else {
+          $('#imageContainer2').append(imgtag);
+        }
+        //let listtag = document.createElement('ol');
+        let listtag = document.createElement('p');
         //await img.parent(img_cont);
         for (var i=0; i < 5; i++) {
           //listtag.append(`<li> ${res[i].label}: ${round(res[i].confidence * 100) + '%'} </li>`);
@@ -86,7 +92,14 @@ function dirread (event) {
           //var li = createElement('li', res[i].label + "   " + round(res[i].confidence * 100) + '%');
           //li.parent(pred_cont);
         }
-        $('#imageContainer').append(listtag);
+        
+        if ((count % 2) == 0) {
+          $('#imageContainer').append(listtag);
+        } else {
+          $('#imageContainer2').append(listtag);
+        }
+        
+        count = count+1;
       };
     })(f);
 
