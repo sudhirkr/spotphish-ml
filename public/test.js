@@ -11,7 +11,6 @@ const width = 400;
 const height = 400;
 var drozone;
 
-
 // Change the status when the model loads.
 function modelReady() {
   //select('#modelStatus').html('MobileNet Loaded!')
@@ -49,50 +48,61 @@ function setup() {
   dropzone.dragLeave(unhighlight);
   dropzone.drop(gotFile, unhighlight);
 
-  input = select('#files');
-  input.changed(function(evt) {
-    var files = evt.target.files;
-    console.log("files");
-    console.log(files);
-
-    // Loop through the FileList and render image files as thumbnails.
-    for (var i = 0, f; f = files[i]; i++) {
-      // Only process image files.
-      if (!f.type.match('image.*')) {
-        continue;
-      }
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        //console.log(e.target.result);
-        img_selector = select('#selected-image');
-        img = createImg(e.target.result, testModel);
-        img.size(224, 224);
-        img.parent('#selected-image');
-      }
-      reader.readAsDataURL(f);
-    }
-  });
+  document.getElementById("filepicker").addEventListener("change", dirread, false);
+  document.getElementById("files").addEventListener("change", dirread, false);
 }
 
-function testModel() {
-  // Get a prediction for that image
-  console.log(img);
-  console.log(classifier);
-  classifier.classify(img, function(err, result) {
-  console.log(result);
-  console.log(result[0]);
-  console.log(result[0].label);
+function dirread (event) {
+  console.log("inside dirread");
+  let output = document.getElementById("listing");
+  let files = event.target.files;
+  
+  for (let i=0; i<files.length; i++) {
+    f = files[i];
+    // Only process image files.
+    if (!f.type.match('image.*')) {
+      console.log("these files did not match");
+      continue;
+    }
 
-  var plist = select("#prediction-list");
-  for (var i=0; i < 5; i++) {
-    li = createElement('li', result[i].label + "   " + round(result[i].confidence * 100) + '%');
-    li.parent(plist);
-    createElement('li', result[i].label + "   " + round(result[i].confidence * 100) + '%');
+    var reader = new FileReader();
+    // Closure to capture the file information.
+    reader.onload = (function(theFile) {
+      return async function(e) {
+        img = await createImg(e.target.result).hide();
+        await img.size(224, 224);
+        let res = await testModel(img);
+        console.log(res);
+        let imgtag = document.createElement('img');
+        imgtag.src = e.target.result;
+        imgtag.setAttribute("width", "256");
+        imgtag.setAttribute("height", "256");
+        $('#imageContainer').append(imgtag);
+        let listtag = document.createElement('ol');
+        //await img.parent(img_cont);
+        for (var i=0; i < 5; i++) {
+          //listtag.append(`<li> ${res[i].label}: ${round(res[i].confidence * 100) + '%'} </li>`);
+          listtag.append(`${res[i].label}: ${round(res[i].confidence * 100) + '%'}  `);
+          //var li = createElement('li', res[i].label + "   " + round(res[i].confidence * 100) + '%');
+          //li.parent(pred_cont);
+        }
+        $('#imageContainer').append(listtag);
+      };
+    })(f);
+
+    // Read in the image file as a data URL.
+    reader.readAsDataURL(f);
   }
+}
 
-  createP(" ");
-  createP(" ");
+async function testModel(img) {
+  // Get a prediction for that image
+  let res = await classifier.classify(img, function(err, result) {
+    console.log(result);
+    return result;
   });
+
+  return res;
 }
 
 function gotFile(file) {

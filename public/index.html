@@ -28,36 +28,38 @@
     </div>
 
       <div class="row">
-        <div class="col-md-6 col-lg-6 col-xl-6">
+        <div class="col-md-3 col-lg-3 col-xl-3">
           <input class="form-control border-0" type="file" id="files" name="files[]" multiple /> 
           <output id="list"></output>
         </div>
+        
+        <div class="col-md-3 col-lg-3 col-xl-3">
+            <input type="file" id="filepicker" value="Volvo" name="fileList"  webkitdirectory multiple />
+            <ul id="listing"></ul>
+        </div>
+        
         <div class="col-md-6 col-lg-6 col-xl-6">
           <div id="dropzone">Drop files here</div>
         </div>
       </div>
 
-      <hr>
-      <div class="row">
+      <!-- <div class="row">
         <div class="col-md-6 col-lg-6 col-xl-6 text-capitalize">
-          <h5 class="ml-3">Predictions</h5>
-            <ul id="prediction-list"></ul>
+          <h9 class="ml-2">Predictions</h9>
+            <br />
+            <span id="res1"></span> <span id="conf1"></span><br />
+            <span id="res2"></span> <span id="conf2"></span><br />
+            <span id="res3"></span> <span id="conf3"></span><br />
+            <span id="res4"></span> <span id="conf4"></span><br />
+            <span id="res5"></span> <span id="conf5"></span><br />
         </div>
-      </div>
+      </div> -->
 
       <hr>
-      <div class="row">
-        <div class="col-md-6 col-lg-6 col-sm-6">
-          <h5 class="ml-3">Image</h5>
-            <div id="imageContainer">
-
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-6 col-xl-6">
-          <h5 class="ml-3 float-right">Predictions</h5>
-            <!-- <ol id="prediction-list"></ol> -->
-            <div id="prediction-container">
-            </div>
+      <div class="row" id="prediction-row">
+        <div class="col-md-12 col-lg-12 col-sm-12 float-right">
+          <div id="imageContainer">
+          </div>
         </div>
       </div>
     </div>
