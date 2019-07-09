@@ -7,10 +7,29 @@ let img1;
 let data = {};
 let canvas;
 var selectedFile;
+const googleImages = 108;                                                         
+const amazonImages = 103;                                                         
+const paypalImages = 153;                                                         
+const facebookImages = 211;                                                       
+const dropboxImages = 133;           
 const width = 400;
 const height = 400;
 var drozone;
 var count = 0;
+
+function preload() {
+  data = loadJSON('json_ml5data.json', jsonReady);
+}
+
+function load_imgs(label, nimgs) {
+  for (let i = 0; i < nimgs; i++) {
+    imgpath = data.children[label].children[i].path;
+    type = data.children[label].children[i].type;
+    img = createImg(imgpath).hide();
+    console.log(imgpath + " loading " + type);
+    classifier.addImage(img, type);
+  }
+}
 
 // Change the status when the model loads.
 function modelReady() {
@@ -28,26 +47,52 @@ function classifierReady () {
   //If you want to load a pre-trained model at the start
 }
 
-function highlight() {
-  dropzone.style('background-color', '#AAA');
+// Change the status when the model loads.
+function jsonReady() {
+  console.log('json loaded');
 }
 
-function unhighlight() {
-  dropzone.style('background-color', '#fff');
+function whileTraining(loss) {
+  if (loss == null) {
+    console.log('Training Complete');
+    //classifier.classify(gotResults);
+  } else {
+    console.log(loss);
+  }
+}
+
+function load_data() {
+  load_imgs(0, googleImages);
+  load_imgs(1, amazonImages);
+  load_imgs(2, paypalImages);
+  load_imgs(3, facebookImages);
+  load_imgs(4, dropboxImages);
+}
+
+function train() {
+  const options = {version: 1, epochs: 20, numLabels: 5, batchSize: 0.2 };
+  mobilenet = ml5.featureExtractor('MobileNet', options, modelReady)
+  classifier = mobilenet.classification(classifierReady)
+		.then(() => load_data())
+		.catch(function (err) {
+			console.log(err);
+		});
 }
 
 function setup() {
   noCanvas();
+  train();
 
-  const options = {version: 1, epochs: 20, numLabels: 5, batchSize: 0.2 };
-  mobilenet = ml5.featureExtractor('MobileNet', options, modelReady);
-  classifier = mobilenet.classification(classifierReady);
-  classifier.load('model.json', customclassifier);
+  trainButton = select('#train'); 
+  trainButton.mousePressed(function() {
+    classifier.train(whileTraining);
+  });
 
-  dropzone = select('#dropzone');
-  dropzone.dragOver(highlight);
-  dropzone.dragLeave(unhighlight);
-  dropzone.drop(gotFile, unhighlight);
+  saveButton = select('#save'); 
+  saveButton.mousePressed(function() {
+    classifier.save();
+    console.log('Custom Model saved!!');
+  });
 
   document.getElementById("filepicker").addEventListener("change", dirread, false);
   document.getElementById("files").addEventListener("change", dirread, false);
@@ -116,22 +161,6 @@ async function testModel(img) {
   });
 
   return res;
-}
-
-function gotFile(file) {
-  createP(file.name);
-  console.log("Came here")
-  console.log(file);
-  // If it's an image file
-  if (file.type === 'image') {
-    // Create an image DOM element but don't show it
-    img = createImg(file.data, testModel);
-    img.size(244, 244);
-    // Draw the image onto the canvas
-    image(img, 0, 0, width, height);
-  } else {
-    console.log('Not an image file!');
-  }
 }
 
 function draw() {
