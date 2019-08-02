@@ -6,52 +6,51 @@ let img1;
 let data = {};
 let canvas;
 var selectedFile;
-const googleImages = 108;
-const amazonImages = 103;
-const paypalImages = 153;
-const facebookImages = 211;
-const dropboxImages = 133;
-const barodaImages = 136;
-const canaraImages = 373;
-const hdfcImages = 246;
-const iciciImages = 274;
-const idbiImages = 157;
-const sbiImages = 308;
+// const googleImages = 108;
+// const amazonImages = 103;
+// const paypalImages = 153;
+// const facebookImages = 211;
+// const dropboxImages = 133;
+// const barodaImages = 136;
+// const canaraImages = 373;
+// const hdfcImages = 246;
+// const iciciImages = 274;
+// const idbiImages = 157;
+// const sbiImages = 308;
+var totalImages;
 const width = 400;
 const height = 400;
 var drozone;
 var count = 0;
 var imagesCompleted = 0;
-var totalImages = googleImages + amazonImages + paypalImages + facebookImages + dropboxImages + barodaImages + canaraImages + hdfcImages + iciciImages + idbiImages + sbiImages;
+var className;
+
+var ver = 1;
+var ep = 50;
+var nlabel;
+var bs = 1;
 
 function preload() {
-    data = loadJSON('json_ml5data.json', jsonReady);
+    data = loadJSON('./tree_data.json', jsonReady);
 }
 
-function load_imgs(label, nimgs, imagesCallback) {
-    new Promise((resolve, reject) => {
-        for (let i = 0; i < nimgs; i++) {
-            const imageData = data.children[label].children[i]
-            const image = document.createElement("img")
-            image.src = "/all_data/" + imageData.path
-            image.onload = () => {
-                const type = imageData.type;
-                classifier.addImage(image, type, (res) => {
-                    console.log(image)
+function load_imgs(className, imagePath) {
+    return new Promise((resolve) => {
+        const image = createImg(imagePath, () => {
+            try {
+                classifier.addImage(image, className, () => {
                     imagesCompleted += 1;
+                    // console.log("Image width " + image.width + " Image height " + image.height);
                     console.log("[ INFO ] : " + imagesCompleted + " of " + totalImages + " : " + ((imagesCompleted / totalImages) * 100).toFixed(2) + "%");
-                    if (i == (nimgs - 1)) {
-                        resolve()
-                    }
+                    console.log(imagePath);
+                    image.remove()
+                    resolve()
                 })
+            } catch (error) {
+                console.log(error, "AT IMAGE", image);
             }
-            image.remove()
-        }
-    }).then(() => {
-        imagesCallback(data.children[label].datei)
+        })
     })
-
-
 }
 // Change the status when the model loads.
 function modelReady() {
@@ -73,6 +72,11 @@ function classifierReady() {
 function jsonReady() {
     console.log('json loaded');
     console.log(data);
+    totalImages = parseInt(data[1]["files"]);
+    nlabel = parseInt(data[1]["directories"]);
+    data = data[0].contents
+    console.log("Total images in JSON :", totalImages);
+    console.log("Total classes in JSON :", nlabel);
 }
 
 function whileTraining(loss) {
@@ -84,40 +88,58 @@ function whileTraining(loss) {
     }
 }
 
-function imagesCallback(className) {
-    console.log("[ INFO ] : All " + className + " images loaded");
 
+// ? Function doesn't help in reducing memory or time so avoid using this
+function loadClass(className, imagesObj) {
+    return new Promise((resolve) => {
+        var promises = []
+        for (obj in imagesObj) {
+            const imagePath = imagesObj[obj]["name"]
+            promises.push(load_imgs(className, imagePath))
+            Promise.all(promises).then(() => {
+                resolve()
+            })
+        }
+
+    })
 }
 
-function load_data() {
+async function load_data() {
+    console.log(classifier);
+
     try {
-        load_imgs(0, amazonImages, imagesCallback);
-        load_imgs(1, barodaImages, imagesCallback);
-        load_imgs(2, canaraImages, imagesCallback);
-        load_imgs(3, dropboxImages, imagesCallback);
-        load_imgs(4, facebookImages, imagesCallback);
-        load_imgs(5, googleImages, imagesCallback);
-        load_imgs(6, hdfcImages, imagesCallback);
-        load_imgs(7, iciciImages, imagesCallback);
-        load_imgs(8, idbiImages, imagesCallback);
-        load_imgs(9, paypalImages, imagesCallback);
-        load_imgs(10, sbiImages, imagesCallback);
+        for (i in data) {
+            className = data[i].name
+            className = (className.split("/"))[1];
+            console.log(data[i]);
+            var imagesObj = data[i]["contents"];
+            for (obj in imagesObj) {
+                const imagePath = imagesObj[obj]["name"]
+                await load_imgs(className, imagePath)
+            }
+        }
     } catch (error) {
         console.log(error);
     }
+    console.log("All images added to classifier : ", classifier);
+
 }
 
-function load_dependencies() {
-    (async() => {
-        const options = await { version: 1, epochs: 20, numLabels: 5, batchSize: 0.2 };
-        mobilenet = await ml5.featureExtractor('MobileNet', options, modelReady)
-        classifier = await mobilenet.classification(classifierReady)
-    })();
+async function load_dependencies() {
+    const options = { version: ver, epochs: ep, numLabels: nlabel, batchSize: bs };
+    mobilenet = ml5.featureExtractor('MobileNet', options, modelReady)
+
+    classifier = mobilenet.classification()
+        // console.log(classifier);
 }
 
 function setup() {
     noCanvas();
-    load_dependencies();
+
+    (async() => {
+        await load_dependencies();
+        console.log("All dependencies loaded");
+    })();
 
     trainButton = select('#train');
     trainButton.mousePressed(function() {
@@ -139,7 +161,6 @@ function setup() {
 
 function dirread(event) {
     console.log("inside dirread");
-    let output = document.getElementById("listing");
     let files = event.target.files;
 
     for (let i = 0; i < files.length; i++) {
@@ -152,7 +173,7 @@ function dirread(event) {
 
         var reader = new FileReader();
         // Closure to capture the file information.
-        reader.onload = (function(theFile) {
+        reader.onload = (function() {
             return async function(e) {
                 img = await createImg(e.target.result).hide();
                 await img.size(224, 224);
@@ -171,9 +192,9 @@ function dirread(event) {
                 let listtag = document.createElement('p');
                 //await img.parent(img_cont);
                 for (var i = 0; i < 5; i++) {
-                    //listtag.append(`<li> ${res[i].label}: ${round(res[i].confidence * 100) + '%'} </li>`);
-                    listtag.append(`${res[i].label}: ${round(res[i].confidence * 100) + '%'}  `);
-                    //var li = createElement('li', res[i].label + "   " + round(res[i].confidence * 100) + '%');
+                    //listtag.append(`<li> ${res[i].className}: ${round(res[i].confidence * 100) + '%'} </li>`);
+                    listtag.append(`${res[i].className}: ${round(res[i].confidence * 100) + '%'}  `);
+                    //var li = createElement('li', res[i].className + "   " + round(res[i].confidence * 100) + '%');
                     //li.parent(pred_cont);
                 }
 
