@@ -7,6 +7,7 @@ Detecting phishing web site based on human perception
 3. Go to /home/spotphish-ml and clode the git
 
 git clone https://github.com/sudhirkr/spotphish-ml
+
 4. Go inside the docker - docker exec -it spotphish-ml /bin/bash
 5. npm install
 6. Start the server - node index.js
